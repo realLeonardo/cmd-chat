@@ -1,3 +1,6 @@
+/**
+ * NOTE: 待扩展
+ */
 #ifndef MESSAGE_H_
 #define MESSAGE_H_
 

@@ -28,6 +28,8 @@ using namespace std;
 class server {
  public:
   server();
+
+  // NOTE: 为了 doServerRead 能够获取到数据，暂时设为静态。是否有更好的方法？
   static vector<user> users;
 };
 

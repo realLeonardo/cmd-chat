@@ -1,5 +1,6 @@
 #include "server.h"
 
+// NOTE: pthread_create 回调函数，格式如此
 void *doServerRead(void *arg) {
   int cfd = *(int *)arg;
 
@@ -87,8 +88,8 @@ server::server() {
     cout << "Got connection: " << u.name << endl;
     cout << "Current clients count: " << server::users.size() << endl;
 
-    // NOTE: 分发给其他 user
     for (auto c : server::users) {
+      // NOTE: 分发给其他 user
       if (cfd != c.uid) {
         string msg = u.name + ": Hello everyone~";
         write(c.uid, msg.c_str(), msg.size());

@@ -1,3 +1,6 @@
+/**
+ * NOTE: 模拟客户端
+ */
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <netdb.h>
