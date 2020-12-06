@@ -13,8 +13,11 @@
 #include <cstring>  // For memset()
 #include <iostream>
 #include <string>
+#include <vector>
 
 using namespace std;
+
+vector<string> msg_v;
 
 /* 监听的端口 */
 #define SERV_PORT 9999
@@ -27,8 +30,22 @@ void *doClientRead(void *arg) {
     char buf[BUFSIZ];
     int ret = read(cfd, buf, sizeof buf);
 
-    for (int i = 0; i < ret; ++i) cout << buf[i];
-    cout << endl;
+    if (ret == -1) {
+      cerr << "read error" << endl;
+      break;
+    }
+
+    string msg = "";
+    for (int i = 0; i < ret; ++i) msg += buf[i];
+
+    msg_v.push_back(msg);
+    cout << msg << endl;
+  }
+}
+
+void printMsgs() {
+  for (auto msg : msg_v) {
+    cout << msg << endl;
   }
 }
 
@@ -55,7 +72,11 @@ int main(int argc, char *argv[]) {
   // NOTE: handle self info
   char buf[BUFSIZ];
   int ret = read(cfd, buf, sizeof buf);
-  cout << "Your random name: " << buf << endl;
+  string name = "";
+  for (int i = 0; i < ret; ++i) name += buf[i];
+
+  system("clear");
+  cout << "Your name: " << name << endl;
 
   // NOTE: readloop base on multi thread
   pthread_t pt;
@@ -65,6 +86,11 @@ int main(int argc, char *argv[]) {
   while (true) {
     string text;
     getline(cin, text);
+
     write(cfd, text.c_str(), text.size());
+
+    msg_v.push_back(name + ": " + text);
+    system("clear");
+    printMsgs();
   }
 }

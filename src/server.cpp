@@ -8,6 +8,12 @@ void *doServerRead(void *arg) {
     char buf[BUFSIZ];
     int ret = read(cfd, buf, sizeof buf);
 
+    if (ret == -1) {
+      close(cfd);
+      cerr << "read error" << endl;
+      break;
+    }
+
     for (int i = 0; i < ret; ++i) cout << buf[i];
     cout << endl;
 
