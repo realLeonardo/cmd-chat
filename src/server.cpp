@@ -8,29 +8,41 @@ void *doServerRead(void *arg) {
     char buf[BUFSIZ];
     int ret = read(cfd, buf, sizeof buf);
 
-    if (ret == -1) {
-      close(cfd);
-      cerr << "read error" << endl;
-      break;
-    }
-
-    for (int i = 0; i < ret; ++i) cout << buf[i];
-    cout << endl;
-
-    string msg;
-    int name_len = 0;
+    string msg, name;
     for (auto c : server::users) {
       if (cfd == c.uid) {
-        msg = c.name + ": ";
-        name_len = msg.size();
+        name = c.name;
+        msg = name + ": ";
       }
+    }
+
+    if (ret <= 0) {
+      string leave_msg = name + " has left.";
+      auto c_i = server::users.begin();
+
+      for (auto beg = server::users.begin(); beg != server::users.end();
+           ++beg) {
+        if (cfd != (*beg).uid) {
+          write((*beg).uid, leave_msg.c_str(), leave_msg.size());
+        } else {
+          c_i = beg;
+        }
+      }
+
+      server::users.erase(c_i);
+      cerr << name + " disconnect, left user count: " << server::users.size()
+           << endl;
+      break;
     }
 
     for (int i = 0; i < ret; ++i) msg += buf[i];
 
+    // NOTE: server output for test
+    cout << msg << endl;
+
     for (auto c : server::users) {
       if (cfd != c.uid) {
-        write(c.uid, msg.c_str(), ret + name_len);
+        write(c.uid, msg.c_str(), msg.size());
       }
     }
   }
@@ -97,7 +109,7 @@ server::server() {
     for (auto c : server::users) {
       // NOTE: 分发给其他 user
       if (cfd != c.uid) {
-        string msg = u.name + ": Hello everyone~";
+        string msg = u.name + " has joined.";
         write(c.uid, msg.c_str(), msg.size());
       } else {
         // NOTE: 返回自己的用户信息

@@ -30,8 +30,8 @@ void *doClientRead(void *arg) {
     char buf[BUFSIZ];
     int ret = read(cfd, buf, sizeof buf);
 
-    if (ret == -1) {
-      cerr << "read error" << endl;
+    if (ret <= 0) {
+      cerr << "server read error" << endl;
       break;
     }
 
@@ -76,6 +76,9 @@ int main(int argc, char *argv[]) {
   for (int i = 0; i < ret; ++i) name += buf[i];
 
   system("clear");
+
+  string first_msg = "Your name: " + name;
+  msg_v.push_back(first_msg);
   cout << "Your name: " << name << endl;
 
   // NOTE: readloop base on multi thread
@@ -87,9 +90,12 @@ int main(int argc, char *argv[]) {
     string text;
     getline(cin, text);
 
-    write(cfd, text.c_str(), text.size());
+    if (text.size() != 0) {
+      write(cfd, text.c_str(), text.size());
 
-    msg_v.push_back(name + ": " + text);
+      msg_v.push_back(name + ": " + text);
+    }
+
     system("clear");
     printMsgs();
   }
