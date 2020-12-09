@@ -7,7 +7,7 @@ enable_testing()
 # fix linux pthread error
 find_package(Threads)
 
-add_executable(server main.cpp src/server.h src/user.h src/message.h src/server.cpp)
+add_executable(server main.cpp src/server.h src/user.h src/message.h src/utils.h src/server.cpp src/utils.cpp)
 add_executable(client src/client.cpp)
 
 target_link_libraries (server ${CMAKE_THREAD_LIBS_INIT})

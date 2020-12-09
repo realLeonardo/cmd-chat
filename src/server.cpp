@@ -8,11 +8,10 @@ void *doServerRead(void *arg) {
     char buf[BUFSIZ];
     int ret = read(cfd, buf, sizeof buf);
 
-    string msg, name;
+    string name;
     for (auto c : server::users) {
       if (cfd == c.uid) {
         name = c.name;
-        msg = name + ": ";
       }
     }
 
@@ -22,6 +21,7 @@ void *doServerRead(void *arg) {
 
       for (auto beg = server::users.begin(); beg != server::users.end();
            ++beg) {
+        // NOTE: 分发用户离开的消息
         if (cfd != (*beg).uid) {
           write((*beg).uid, leave_msg.c_str(), leave_msg.size());
         } else {
@@ -29,40 +29,28 @@ void *doServerRead(void *arg) {
         }
       }
 
+      // NOTE: erase userinfo
       server::users.erase(c_i);
       cerr << name + " disconnect, left user count: " << server::users.size()
            << endl;
+
       break;
     }
+
+    string msg = name + ": ";
 
     for (int i = 0; i < ret; ++i) msg += buf[i];
 
     // NOTE: server output for test
     cout << msg << endl;
 
+    // NOTE: 分发用户消息
     for (auto c : server::users) {
       if (cfd != c.uid) {
         write(c.uid, msg.c_str(), msg.size());
       }
     }
   }
-}
-
-// NOTE: gen an name string
-string gen_username() {
-  static int i = 0;
-
-  vector<string> names;
-  names.push_back("Alice");
-  names.push_back("Bob");
-  names.push_back("Clera");
-  names.push_back("Dente");
-  names.push_back("Einstan");
-  names.push_back("Frank");
-  names.push_back("Gergeo");
-  // and so on...
-
-  return names[i++];
 }
 
 server::server() {
@@ -87,12 +75,12 @@ server::server() {
     exit(1);
   }
 
-  if (listen(lfd, BACKLOG) == -1) {
+  if (listen(lfd, CLIENT_MAX) == -1) {
     cerr << "listen error" << endl;
     exit(1);
   }
 
-  // NOTE: loop accepts
+  // NOTE: accept-loop
   while (true) {
     cfd = accept(lfd, (struct sockaddr *)&client_addr, &sin_size);
 
@@ -101,23 +89,25 @@ server::server() {
       continue;
     }
 
-    user u(cfd, gen_username(), "");
-    server::users.push_back(u);
-    cout << "Got connection: " << u.name << endl;
+    // NOTE: Generate a userinfo
+    user new_user(cfd, utils::gen_username(), "");
+
+    server::users.push_back(new_user);
+    cout << "Got connection: " << new_user.name << endl;
     cout << "Current clients count: " << server::users.size() << endl;
 
     for (auto c : server::users) {
       // NOTE: 分发给其他 user
       if (cfd != c.uid) {
-        string msg = u.name + " has joined.";
+        string msg = new_user.name + " has joined.";
         write(c.uid, msg.c_str(), msg.size());
       } else {
         // NOTE: 返回自己的用户信息
-        write(cfd, u.name.c_str(), u.name.size());
+        write(cfd, new_user.name.c_str(), new_user.name.size());
       }
     }
 
-    // NOTE: readloop base on multi thread
+    // NOTE: readloop with multi thread
     pthread_t pt;
     pthread_create(&pt, NULL, &doServerRead, &cfd);
   }

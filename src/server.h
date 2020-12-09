@@ -17,19 +17,22 @@
 
 #include "message.h"
 #include "user.h"
+#include "utils.h"
 
 using namespace std;
 
-/* 监听的端口 */
+/* 监听端口 */
 #define SERV_PORT 9999
-/* listen的请求接收队列长度 */
-#define BACKLOG 128
+/* 最大客户端连接数 */
+#define CLIENT_MAX 128
 
 class server {
  public:
   server();
+  void *test(void *arg);
 
-  // NOTE: 为了 doServerRead 能够获取到数据，暂时设为静态。是否有更好的方法？
+  // NOTE: 为了 doServerRead 能够获取到数据，暂时设为静态。
+  // 是否有更好的方法？
   static vector<user> users;
 };
 

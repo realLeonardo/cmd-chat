@@ -17,12 +17,13 @@
 
 using namespace std;
 
+/* 服务器端口 */
+#define SERV_PORT 9999
+
+// NOTE: messages vector
 vector<string> msg_v;
 
-/* 监听的端口 */
-#define SERV_PORT 9999
-#define MAXDATASIZE 100 /* 一次可以读的最大字节数 */
-
+// NOTE: pthread_create 回调函数，格式如此
 void *doClientRead(void *arg) {
   int cfd = *(int *)arg;
 
@@ -38,8 +39,8 @@ void *doClientRead(void *arg) {
     string msg = "";
     for (int i = 0; i < ret; ++i) msg += buf[i];
 
-    msg_v.push_back(msg);
     cout << msg << endl;
+    msg_v.push_back(msg);
   }
 }
 
@@ -81,7 +82,7 @@ int main(int argc, char *argv[]) {
   msg_v.push_back(first_msg);
   cout << "Your name: " << name << endl;
 
-  // NOTE: readloop base on multi thread
+  // NOTE: read loop with multi thread
   pthread_t pt;
   pthread_create(&pt, NULL, &doClientRead, &cfd);
 
@@ -92,7 +93,6 @@ int main(int argc, char *argv[]) {
 
     if (text.size() != 0) {
       write(cfd, text.c_str(), text.size());
-
       msg_v.push_back(name + ": " + text);
     }
 
